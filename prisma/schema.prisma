@@ -1,0 +1,78 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRoles {
+  ADMIN
+  CUSTOMER
+}
+
+model User {
+  id               String            @id @default(uuid())
+  name             String
+  email            String            @unique
+  password         String
+  role             UserRoles         @default(CUSTOMER)
+  contactNo        String
+  address          String
+  profileImg       String
+  reviewAndRatings ReviewAndRating[]
+  Order            Order[]
+
+  @@map("user")
+}
+
+model Category {
+  id    String @id @default(uuid())
+  title String
+  books Book[]
+
+  @@map("category")
+}
+
+model Book {
+  id               String            @id @default(uuid())
+  title            String
+  author           String
+  price            Float
+  genre            String
+  publicationDate  DateTime
+  categoryId       String
+  category         Category          @relation(fields: [categoryId], references: [id])
+  reviewAndRatings ReviewAndRating[]
+
+  @@map("book")
+}
+
+model ReviewAndRating {
+  id     String @id @default(uuid())
+  review String
+  rating Int
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+  bookId String
+  book   Book   @relation(fields: [bookId], references: [id])
+
+  @@map("reviewAndRating")
+}
+
+enum OrderStatus {
+  PENDING
+  SHIPPED
+  DELIVERED
+}
+
+model Order {
+  id           String      @id @default(uuid())
+  userId       String
+  orderedBooks Json
+  status       OrderStatus @default(PENDING)
+  createdAt    DateTime    @default(now())
+  user         User        @relation(fields: [userId], references: [id])
+
+  @@map("order")
+}
