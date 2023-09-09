@@ -1,18 +1,22 @@
-/*
-  Warnings:
-
-  - The `role` column on the `user` table would be dropped and recreated. This will lead to data loss if there is data in the column.
-
-*/
 -- CreateEnum
 CREATE TYPE "UserRoles" AS ENUM ('ADMIN', 'CUSTOMER');
 
 -- CreateEnum
 CREATE TYPE "OrderStatus" AS ENUM ('PENDING', 'SHIPPED', 'DELIVERED');
 
--- AlterTable
-ALTER TABLE "user" DROP COLUMN "role",
-ADD COLUMN     "role" "UserRoles" NOT NULL DEFAULT 'CUSTOMER';
+-- CreateTable
+CREATE TABLE "user" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "password" TEXT NOT NULL,
+    "role" "UserRoles" NOT NULL DEFAULT 'CUSTOMER',
+    "contactNo" TEXT NOT NULL,
+    "address" TEXT NOT NULL,
+    "profileImg" TEXT NOT NULL,
+
+    CONSTRAINT "user_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
 CREATE TABLE "category" (
@@ -56,6 +60,9 @@ CREATE TABLE "order" (
 
     CONSTRAINT "order_pkey" PRIMARY KEY ("id")
 );
+
+-- CreateIndex
+CREATE UNIQUE INDEX "user_email_key" ON "user"("email");
 
 -- AddForeignKey
 ALTER TABLE "book" ADD CONSTRAINT "book_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "category"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
