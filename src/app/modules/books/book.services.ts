@@ -49,14 +49,6 @@ const getBooksFromDb = async (
     });
   }
 
-  if (category) {
-    andConditions.push({
-      category: {
-        equals: category,
-      },
-    });
-  }
-
   if (Number(minPrice)) {
     andConditions.push({
       price: {
