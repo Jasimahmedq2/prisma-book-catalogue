@@ -1,4 +1,5 @@
 import { Book, Prisma, PrismaClient } from "@prisma/client";
+import { IGenericResponse } from "../../../interfaces/common";
 
 const prisma = new PrismaClient();
 
@@ -11,48 +12,91 @@ const insertIntoDb = async (payload: Book): Promise<Book> => {
   });
   return result;
 };
-const getBooksFromDb = async (payload: any): Promise<Book[] | null> => {
-  const skip = (parseInt(payload.page as string) - 1) * payload.limit;
-  const limit = parseInt(payload.limit as string);
-  const {
-    searchTerm,
-    sortBy,
-    sortOrder,
-    name,
-    category,
-    genre,
-    minPrice,
-    maxPrice,
-  } = payload;
 
-  const andConditions = [];
+const getBooksFromDb = async (
+  payload: any
+): Promise<IGenericResponse<Book[] | null>> => {
+  const skip = (parseInt(payload.page as string) - 1) * payload.size || 1;
+  const limit = parseInt(payload.size) || 10;
+  console.log({ skip, limit, payload });
+  const { searchTerm, sortBy, sortOrder, category, minPrice, maxPrice } =
+    payload;
+
+  const andConditions: Array<Prisma.BookWhereInput> = [];
 
   if (searchTerm) {
     andConditions.push({
-      OR: ["title", "name", "email"].map((field) => ({
-        [field]: {
-          contains: searchTerm,
-          mode: "insensitive",
+      OR: [
+        {
+          title: {
+            contains: searchTerm,
+            mode: "insensitive",
+          },
         },
-      })),
+        {
+          author: {
+            contains: searchTerm,
+            mode: "insensitive",
+          },
+        },
+        {
+          genre: {
+            contains: searchTerm,
+            mode: "insensitive",
+          },
+        },
+      ],
+    });
+  }
+
+  if (category) {
+    andConditions.push({
+      category: {
+        equals: category,
+      },
+    });
+  }
+
+  if (Number(minPrice)) {
+    andConditions.push({
+      price: {
+        gte: parseFloat(minPrice),
+      },
+    });
+  }
+
+  if (Number(maxPrice)) {
+    andConditions.push({
+      price: {
+        lte: parseFloat(maxPrice),
+      },
     });
   }
 
   const whereConditions: Prisma.BookWhereInput =
     andConditions.length > 0 ? { AND: andConditions } : {};
 
+  const total = await prisma.book.count();
+
   const result = await prisma.book.findMany({
     where: whereConditions,
     skip,
     take: limit,
     orderBy:
-      payload.sortBy && payload.sortOrder
-        ? { [payload.sortBy]: payload.sortOrder }
+      sortBy && sortOrder
+        ? { [sortBy]: sortOrder }
         : {
             title: "desc",
           },
   });
-  return result;
+  return {
+    meta: {
+      page: skip,
+      limit,
+      total,
+    },
+    data: result, 
+  };
 };
 
 const getSingleBook = async (id: string): Promise<Book | null> => {
@@ -83,9 +127,7 @@ const updateBook = async (
   });
   return result;
 };
-const deleteBook = async (
-  id: string,
-): Promise<Book | null> => {
+const deleteBook = async (id: string): Promise<Book | null> => {
   const result = await prisma.book.delete({
     where: {
       id,
