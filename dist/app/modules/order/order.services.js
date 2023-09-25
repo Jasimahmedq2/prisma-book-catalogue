@@ -32,14 +32,14 @@ const createOrder = (userId, payload) => __awaiter(void 0, void 0, void 0, funct
 });
 const getFromDB = (userId, role) => __awaiter(void 0, void 0, void 0, function* () {
     let result = null;
-    if (role === "CUSTOMER") {
+    if (role === "customer") {
         result = yield prisma.order.findMany({
             where: {
                 userId,
             },
         });
     }
-    else if (role === "ADMIN") {
+    else if (role === "admin") {
         result = yield prisma.order.findMany({});
     }
     return result;
@@ -52,14 +52,14 @@ const getSingleOrder = (orderId, userId, role) => __awaiter(void 0, void 0, void
         },
     });
     console.log({ theOrder });
-    if (role === "ADMIN") {
+    if (role === "admin") {
         result = yield prisma.order.findUnique({
             where: {
                 id: orderId,
             },
         });
     }
-    else if (role === "CUSTOMER" && (theOrder === null || theOrder === void 0 ? void 0 : theOrder.userId) === userId) {
+    else if (role === "customer" && (theOrder === null || theOrder === void 0 ? void 0 : theOrder.userId) === userId) {
         result = yield prisma.order.findUnique({
             where: {
                 id: orderId,

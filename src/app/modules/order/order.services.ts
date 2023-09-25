@@ -30,13 +30,13 @@ const getFromDB = async (
   role: string
 ): Promise<Order[] | null> => {
   let result = null;
-  if (role === "CUSTOMER") {
+  if (role === "customer") {
     result = await prisma.order.findMany({
       where: {
         userId,
       },
     });
-  } else if (role === "ADMIN") {
+  } else if (role === "admin") {
     result = await prisma.order.findMany({});
   }
   return result;
@@ -57,13 +57,13 @@ const getSingleOrder = async (
 
   console.log({ theOrder });
 
-  if (role === "ADMIN") {
+  if (role === "admin") {
     result = await prisma.order.findUnique({
       where: {
         id: orderId,
       },
     });
-  } else if (role === "CUSTOMER" && theOrder?.userId === userId) {
+  } else if (role === "customer" && theOrder?.userId === userId) {
     result = await prisma.order.findUnique({
       where: {
         id: orderId,
